@@ -14,7 +14,11 @@ add_custom_command(TARGET particle_systems PRE_BUILD
    ${CMAKE_SOURCE_DIR}/assets/weary-face-emoji-clipart-md.png 
    $<TARGET_FILE_DIR:particle_systems>
 )                                
-
+add_custom_command(TARGET particle_systems PRE_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy 
+   ${CMAKE_SOURCE_DIR}/assets/ninepatch_button.png 
+   $<TARGET_FILE_DIR:particle_systems>
+)                      
 target_include_directories(particle_systems PRIVATE include)
 target_link_libraries     (particle_systems PRIVATE raylib)
  

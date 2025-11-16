@@ -3,22 +3,22 @@
 
 
 
-void initParticle(particle_t* particle, Vector2 velocity, float radius, float mass)
+void ParticleSet(Particle* particle, Vector2 velocity, float radius, float mass)
 {
-    (*particle) = (particle_t){.vel    = velocity,
+    (*particle) = (Particle){.vel    = velocity,
                                .radius = radius,
                                .mass   = mass};
 }
-void checkPositions(const particle_t* p, size_t N)
+void ParticleLogInfo(const Particle* p, size_t N)
 {
     for (size_t i = 0; i < N; i++)
     {
         printf("position = (%.1f, %.1f)\n", p[i].pos.x, p[i].pos.y);
     }
 }
-RenderTexture2D createParticleRenderer(float radius)
+RenderTexture2D ParticleCreateRenderTexture(float radius)
 {
-    int RendererTextureLen    = 2*(int)radius;
+    int RendererTextureLen   = 2*(int)radius;
 
     RenderTexture2D renderer = LoadRenderTexture(RendererTextureLen, RendererTextureLen);
 
@@ -28,12 +28,12 @@ RenderTexture2D createParticleRenderer(float radius)
     EndTextureMode();
     return renderer;
 }
-void ParticleMove(particle_t* particle, float dt)
+void ParticleMove(Particle* particle, float dt)
 {
     particle->pos.x += particle->vel.x*dt;
     particle->pos.y += particle->vel.y*dt;
 }
-void ParticleCheckBoundary(particle_t* particle, const Box_t* box)
+void ParticleCheckBoundary(Particle* particle, const Box* box)
 {
     float r = particle->radius;
     bool OutsideRight  =  (particle->pos.x + r >= box->xRight  && particle->vel.x > 0);
@@ -51,7 +51,7 @@ void ParticleCheckBoundary(particle_t* particle, const Box_t* box)
         particle->vel.y *= -1;
     }
 }
-void ParticleCheckCollisions(particle_t* particles, size_t N)
+void ParticleCheckCollisions(Particle* particles, size_t N)
 {
     float distSqr;
     float m_i;
@@ -88,7 +88,7 @@ void ParticleCheckCollisions(particle_t* particles, size_t N)
         }
     }
 }
-void ParticleRemoveCenterOfMass(particle_t* particles, size_t N)
+void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
 {
     float px_CM = 0;
     float py_CM = 0;
@@ -106,8 +106,32 @@ void ParticleRemoveCenterOfMass(particle_t* particles, size_t N)
     }
 }
 
-float getSpeed(const particle_t* particle)
+float ParticleGetVelocity(const Particle* particle)
 {
     return  sqrt(dotProd(&particle->vel, &particle->vel));
 }
 
+
+void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N)
+{
+    float sum = 0;
+    float min = 1E6;
+    float max = 0;
+    float speed = 0;
+    for (size_t i = 0; i < N; i++)
+    {
+        speed = ParticleGetVelocity(&particles[i]);
+        if (speed < min)
+        {
+            min = speed;
+        }
+        if (speed > max)
+        {
+            max = speed;
+        }
+        sum += speed;
+    }
+    (*MinSpeed)     = min;
+    (*MaxSpeed)     = max;
+    (*AverageSpeed) = (sum/(float)N);
+}

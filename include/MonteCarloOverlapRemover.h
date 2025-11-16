@@ -8,9 +8,9 @@
 #include "particle.h"
 
 
-void MonteCarlo_setProposalPosition(particle_t* particle, const Box_t* box, float deltaR);
-bool MonteCarlo_getAcceptance(size_t index, particle_t* particle, size_t N_part);
-void MonteCarlo_UpdateParticlePosition(size_t index, particle_t* particles, size_t N_part, const Box_t* box, float deltaR);
+void MonteCarlo_setProposalPosition(Particle* particle, const Box* box, float deltaR);
+bool MonteCarlo_getAcceptance(size_t index, Particle* particle, size_t N_part);
+void MonteCarlo_UpdateParticlePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR);
 
 
 #endif
