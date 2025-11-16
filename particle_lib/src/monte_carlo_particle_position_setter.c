@@ -40,5 +40,5 @@ void MonteCarloUpdatePosition(size_t index, Particle* particles, size_t N_part, 
     } while (MonteCarloShouldAccept(index, particles, N_part) == FAIL);
     
 
-    if(DEBUG) printf("MONTECARLO: (particle %zu) attempt = %lu\n", index, attempt);
+    if(DEBUG) printf("MONTECARLO: (particle %zu) attempt = %llu\n", index, attempt);
 }
