@@ -1,10 +1,31 @@
 #include "particle_lib/particle.h"
 
+int BoxGetWidth(const Box* box)
+{
+    return box->xRight - box->xLeft; 
+}
+int BoxGetHeigth(const Box* box)
+{
+    return abs(box->yTop - box->yBottom); 
+}
+Vector2 BoxGetUpperLeft(const Box* box)
+{
+    return (Vector2){box->xLeft, box->yTop}; 
+}
+void BoxRender(const Box* box, float thickness, Color color)
+{
+    DrawLineEx((Vector2){box->xLeft,  box->yBottom}, (Vector2){box->xLeft,  box->yTop},    thickness, color);
+    DrawLineEx((Vector2){box->xRight, box->yBottom}, (Vector2){box->xRight, box->yTop},    thickness, color);
+    DrawLineEx((Vector2){box->xLeft,  box->yBottom}, (Vector2){box->xRight, box->yBottom}, thickness, color);
+    DrawLineEx((Vector2){box->xLeft,  box->yTop},    (Vector2){box->xRight, box->yTop},    thickness, color);
+}
 
-void ParticleSet(Particle* particle, Vector2 velocity, float radius, float mass)
+
+void ParticleSet(Particle* particle, Vector2 position, Vector2 velocity, float radius, float mass)
 {
     (*particle) = (Particle)
     {
+        .pos    = position,
         .vel    = velocity,
         .radius = radius,
         .mass   = mass
@@ -17,14 +38,14 @@ void ParticleLogInfo(const Particle* p, size_t N)
         printf("position = (%.1f, %.1f)\n", p[i].pos.x, p[i].pos.y);
     }
 }
-RenderTexture2D ParticleCreateRenderTexture(float radius)
+RenderTexture2D ParticleCreateRenderTexture(float radius, Color particle_color)
 {
     int rendererTextureLen   = 2*(int)radius;
     RenderTexture2D renderer = LoadRenderTexture(rendererTextureLen, rendererTextureLen);
 
     BeginTextureMode(renderer);
     ClearBackground(RAYWHITE);
-        DrawCircle(radius, radius, radius, BLACK);
+        DrawCircle(radius, radius, radius, particle_color);
     EndTextureMode();
     return renderer;
 }
@@ -38,7 +59,6 @@ void ParticleCheckBoundary(Particle* particle, const Box* box)
     float r            = particle->radius;
     bool outsideRight  = (particle->pos.x + r >= box->xRight  && particle->vel.x > 0);
     bool outsideLeft   = (particle->pos.x - r <= box->xLeft   && particle->vel.x < 0);
-
     bool outsideTop    = (particle->pos.y - r <= box->yTop    && particle->vel.y < 0);
     bool outsideBottom = (particle->pos.y + r >= box->yBottom && particle->vel.y > 0);
 
@@ -106,22 +126,25 @@ void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
     }
 }
 
-float ParticleGetVelocity(const Particle* particle)
+float ParticleGetSpeed(const Particle* particle)
 {
-    return  sqrt(VectorGetDotProd(&particle->vel, &particle->vel));
+    return sqrt(VectorGetDotProd(&particle->vel, &particle->vel));
+}
+Vector2 ParticleGetCenter(const Particle* particle)
+{
+    return (Vector2){particle->pos.x - particle->radius, particle->pos.y - particle->radius};
 }
 
-
-void ParticleUpdateInfo(float* minSpeed, float* maxSpeed, float* averageSpeed, const Particle* particles, size_t N)
+void ParticleUpdateInfo(float *minSpeed, float *maxSpeed, float *averageSpeed, const Particle *particles, size_t N)
 {
     float sum   = 0.f;
-    float min   = 1E6;
+    float min   = __FLT_MAX__;
     float max   = 0.f;
     float speed = 0.f;
     
     for (size_t i = 0; i < N; i++)
     {
-        speed = ParticleGetVelocity(&particles[i]);
+        speed = ParticleGetSpeed(&particles[i]);
         if (speed < min)
         {
             min = speed;

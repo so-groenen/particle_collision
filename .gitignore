@@ -11,10 +11,19 @@ CTestTestfile.cmake
 _deps
 CMakeUserPresets.json
 
+#assets:
+brownian_motion/assets/_weary-face-emoji-clipart-md.png
+
 CMakePresets.json
+
+#vscode:
+.VSCodeCounter
 .vscode
+
+#proj
 build
 _draft
+
 # CLion
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore

@@ -7,7 +7,7 @@ void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histo
     size_t bin_number;
     for (size_t i = 0; i < n_part; i++)
     {
-        bin_number = (size_t)(  ParticleGetVelocity(&particles[i]) / Binwidth  );
+        bin_number = (size_t)(  ParticleGetSpeed(&particles[i]) / Binwidth  );
         if (bin_number < histogram->Nbins)
         {
             histogram->binValues[bin_number] += 1;

@@ -44,22 +44,22 @@ int main(void)
     Vector2 pos          = {0};
     Vector2 vel          = {0};
     
-    Particle particle[N_part];
+    Particle particles[N_part];
 
     for (size_t i = 0; i < N_part; i++)
     {
         vel = (Vector2){GetRandomValue(-velocity, velocity), GetRandomValue(-velocity, velocity)};
-        ParticleSet(&particle[i], vel, radius, mass);
+        ParticleSet(&particles[i], pos, vel, radius, mass);
     }
-    ParticleRemoveCenterOfMass(particle, N_part);
+    ParticleRemoveCenterOfMass(particles, N_part);
  
     for (size_t n = 0; n < N_part; n++)
     {
         size_t ParticleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particle, ParticleNumberToCheck, &box, radius);
+        MonteCarloUpdatePosition(n, particles, ParticleNumberToCheck, &box, radius);
     }
 
-    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particle[1].radius);
+    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particles[1].radius, BLACK);
  
 
     Histogram histogram = {0};
@@ -110,17 +110,17 @@ int main(void)
         // dt = GetFrameTime();
     
         // <-- particle updates --> //
-        ParticleCheckCollisions(particle, N_part);
+        ParticleCheckCollisions(particles, N_part);
         for (size_t i = 0; i < N_part; i++)
         {
-            ParticleCheckBoundary(&particle[i], &box); //Implicit Euler: First update velocity, then update positions accordingly.
-            ParticleMove(&particle[i], dt);
+            ParticleCheckBoundary(&particles[i], &box); //Implicit Euler: First update velocity, then update positions accordingly.
+            ParticleMove(&particles[i], dt);
         }
 
         if(frameCounter%10 == 0 )
         {
-            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particle, N_part);
-            HistogramCompute(particle, N_part, &histogram);
+            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particles, N_part);
+            HistogramCompute(particles, N_part, &histogram);
             for (size_t n = 0; n < Nbins; n++)
             {
                 HistogramFillBins(&bins[n], histogram.binValues[n], scalingFactor, MaxHeight);
@@ -140,7 +140,7 @@ int main(void)
             DrawTextureV(boxTexture.texture, (Vector2){0, 0}, WHITE); // when drawing the particles, the position is the edge of the texture, not the center. We can offset it here, but also at the particle level
             for (size_t i = 0; i < N_part; i++)
             {
-                DrawTextureV(particleRenderTex.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
+                DrawTextureV(particleRenderTex.texture, (Vector2){particles[i].pos.x - particles[i].radius, particles[i].pos.y - particles[i].radius}, WHITE);
             }
             for (size_t n = 0; n < Nbins; n++)
             {

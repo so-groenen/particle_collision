@@ -24,10 +24,14 @@ void VectorAddInPlace(Vector2* v1, const Vector2* v2)
     v1->x += v2->x;
     v1->y += v2->y;
 }
-void subVec(Vector2* v1, const Vector2* v2)
+void VectorRemoveInPlace(Vector2* v1, const Vector2* v2)
 {
     v1->x -= v2->x;
     v1->y -= v2->y;
+}
+Vector2 VectorSubtract(const Vector2* lhs, const Vector2* rhs)
+{
+    return (Vector2){lhs->x - rhs->x, lhs->y - rhs->y};
 }
 void VectorScaleAndAddInPlace(Vector2* v1, const Vector2* v2, float s)
 {

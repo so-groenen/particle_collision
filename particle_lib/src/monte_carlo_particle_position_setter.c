@@ -5,7 +5,7 @@
 
 void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
 {
-    const float r                =  particle->radius;
+    const float r                =  particle->radius; 
     const unsigned int BoxWidth  =  (box->xRight  - box->xLeft);
     const unsigned int BoxHeight =  (box->yBottom - box->yTop);
 
