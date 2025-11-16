@@ -22,7 +22,7 @@ typedef struct
 } Box;
 
 
-void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N);
+void ParticleUpdateInfo(float* minSpeed, float* maxSpeed, float* averageSpeed, const Particle* particles, size_t N);
 void ParticleSet(Particle* particle, Vector2 velocity, float radius, float mass);
 void ParticleLogInfo(const Particle* p, size_t N);
 RenderTexture2D ParticleCreateRenderTexture(float radius);

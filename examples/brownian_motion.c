@@ -1,4 +1,3 @@
-// #include "vectorAlgebra.h"
 #include "particle.h"
 #include "monte_carlo_particle_position_setter.h"
 #include <time.h>
@@ -6,8 +5,6 @@
 #define N_part 3000UL
 
 
-// void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N);
- 
 
 int main(void)
 {
@@ -19,7 +16,7 @@ int main(void)
     srand(time(NULL));
 
     // <-- Box for particles --> 
-    Box Box = 
+    Box box = 
     {
         .xLeft   =   windowWidth*(0.05),       
         .xRight  =   (0.95)*windowWidth,
@@ -31,24 +28,23 @@ int main(void)
     const float thickness = 1.0f;
     BeginTextureMode(boxTexture);
         ClearBackground(RAYWHITE);
-        DrawLineEx((Vector2){Box.xLeft,  Box.yBottom}, (Vector2){Box.xLeft,  Box.yTop},    thickness, BLACK);
-        DrawLineEx((Vector2){Box.xRight, Box.yBottom}, (Vector2){Box.xRight, Box.yTop},    thickness, BLACK);
-        DrawLineEx((Vector2){Box.xLeft,  Box.yBottom}, (Vector2){Box.xRight, Box.yBottom}, thickness, BLACK);
-        DrawLineEx((Vector2){Box.xLeft,  Box.yTop},    (Vector2){Box.xRight, Box.yTop},    thickness, BLACK);
+        DrawLineEx((Vector2){box.xLeft,  box.yBottom}, (Vector2){box.xLeft,  box.yTop},    thickness, BLACK);
+        DrawLineEx((Vector2){box.xRight, box.yBottom}, (Vector2){box.xRight, box.yTop},    thickness, BLACK);
+        DrawLineEx((Vector2){box.xLeft,  box.yBottom}, (Vector2){box.xRight, box.yBottom}, thickness, BLACK);
+        DrawLineEx((Vector2){box.xLeft,  box.yTop},    (Vector2){box.xRight, box.yTop},    thickness, BLACK);
     EndTextureMode();
 
 
     // < -- Particles --> 
-    // const size_t N_part  = 3000;
-    const float radius   = 2;
-    const float velocity = 60; //  pixel / secondes
-    const float mass     = 1;
-    Vector2 pos = {0};
-    Vector2 vel = {0};
+    const float radius   = 2.f;
+    const float velocity = 60.f; //  pixel / secondes
+    const float mass     = 1.f;
+    Vector2 pos          = {0};
+    Vector2 vel          = {0};
     
-    const float BrownianRadius = 40;
-    const float BrownianMass   = 5;
-    size_t BrownianIndex       = 0;
+    const float brownianRadius = 40.f;
+    const float BrownianMass   = 5.f;
+    size_t brownianIndex       = 0.f;
 
     Particle particle[N_part];
 
@@ -60,27 +56,27 @@ int main(void)
     // ParticleRemoveCenterOfMass(particle, N_part);
 
 
-    particle[BrownianIndex].mass   = BrownianMass;
-    particle[BrownianIndex].radius = BrownianRadius;
+    particle[brownianIndex].mass   = BrownianMass;
+    particle[brownianIndex].radius = brownianRadius;
 
-    MonteCarloUpdatePosition(BrownianIndex, particle, 0, &Box, radius);
+    MonteCarloUpdatePosition(brownianIndex, particle, 0, &box, radius);
     for (size_t n = 1; n < N_part; n++)
     {
         size_t ParticleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particle, ParticleNumberToCheck, &Box, radius);
+        MonteCarloUpdatePosition(n, particle, ParticleNumberToCheck, &box, radius);
     }
 
     RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particle[1].radius);
+    Texture2D brownianTexture         = LoadTexture("weary-face-emoji-clipart-md.png");
 
-    // RenderTexture2D BronwianRenderer = ParticleCreateRenderTexture(particle[BrownianIndex].radius);
-    Texture2D BrownianWeary = LoadTexture("weary-face-emoji-clipart-md.png");
+    // RenderTexture2D BronwianRenderer = ParticleCreateRenderTexture(particle[brownianIndex].radius);
     // <-- histogram -->
-    int frameWidth  = BrownianWeary.width;
-    int frameHeight = BrownianWeary.height;
+    int frameWidth  = brownianTexture.width;
+    int frameHeight = brownianTexture.height;
 
     // Source rectangle (part of the texture to use for drawing)
     Rectangle sourceRec = { 0.0f, 0.0f, (float)frameWidth, (float)frameHeight };
-    Rectangle destRec   = { particle[BrownianIndex].pos.x, particle[BrownianIndex].pos.y, 2*BrownianRadius, 2*BrownianRadius};
+    Rectangle destRec   = { particle[brownianIndex].pos.x, particle[brownianIndex].pos.y, 2*brownianRadius, 2*brownianRadius};
     Vector2 origin      = {0,0};
 
  
@@ -90,7 +86,7 @@ int main(void)
 
     float dt =  1.0f / (float)targetFPS;
 
-    float MinSpeed, MaxSpeed, AverageSpeed;
+    float minSpeed, maxSpeed, averageSpeed;
 
     // SetTargetFPS(targetFPS);
     while (!WindowShouldClose())
@@ -101,12 +97,12 @@ int main(void)
         ParticleCheckCollisions(particle, N_part);
         for (size_t i = 0; i < N_part; i++)
         {
-            ParticleCheckBoundary(&particle[i], &Box); //Implicit Euler: First update velocity, then update positions accordingly.
+            ParticleCheckBoundary(&particle[i], &box); //Implicit Euler: First update velocity, then update positions accordingly.
             ParticleMove(&particle[i], dt);
         }
         if(frameCounter%10 == 0 )
         {
-            ParticleUpdateInfo(&MinSpeed, &MaxSpeed, &AverageSpeed, particle, N_part);
+            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particle, N_part);
         }
 
 
@@ -116,12 +112,11 @@ int main(void)
             DrawTextureV(boxTexture.texture, (Vector2){0, 0}, WHITE); // when drawing the particles, the position is the edge of the texture, not the center. We can offset it here, but also at the particle level
             for (size_t i = 0; i < N_part; i++)
             {
-                if (i == BrownianIndex)
+                if (i == brownianIndex)
                 {
-                    destRec.x = particle[BrownianIndex].pos.x - BrownianRadius;
-                    destRec.y = particle[BrownianIndex].pos.y - BrownianRadius;
-                    DrawTexturePro(BrownianWeary, sourceRec, destRec, origin, 0.0f, WHITE);
-                    // DrawTextureV(BronwianRenderer.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
+                    destRec.x = particle[brownianIndex].pos.x - brownianRadius;
+                    destRec.y = particle[brownianIndex].pos.y - brownianRadius;
+                    DrawTexturePro(brownianTexture, sourceRec, destRec, origin, 0.0f, WHITE);
                 }
                 else
                 {
@@ -129,7 +124,7 @@ int main(void)
                 }   
             }
             DrawFPS(GetScreenWidth()*(0.05), GetScreenHeight()*(0.0125));
-            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", MinSpeed, MaxSpeed, AverageSpeed), GetScreenWidth()*(0.3), GetScreenHeight()*(0.0125), 18, BLACK);
+            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", minSpeed, maxSpeed, averageSpeed), GetScreenWidth()*(0.3), GetScreenHeight()*(0.0125), 18, BLACK);
 
         EndDrawing();
         frameCounter++;
@@ -137,9 +132,9 @@ int main(void)
 
     CloseWindow();
     UnloadRenderTexture(particleRenderTex);
-    UnloadTexture(BrownianWeary);
+    UnloadTexture(brownianTexture);
     UnloadRenderTexture(boxTexture);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 

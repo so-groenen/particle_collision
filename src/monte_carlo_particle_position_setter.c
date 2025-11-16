@@ -31,11 +31,12 @@
 
 void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
 {
-    float r                =  particle->radius;
-    unsigned int BoxWidth  =  (box->xRight  - box->xLeft);
-    unsigned int BoxHeight =  (box->yBottom - box->yTop);
-    float x_mc  =  (box->xLeft + r) + (BoxWidth  - 2*r)*(float)rand()/RAND_MAX;
-    float y_mc  =  (box->yTop  + r) + (BoxHeight - 2*r)*(float)rand()/RAND_MAX;
+    const float r                =  particle->radius;
+    const unsigned int BoxWidth  =  (box->xRight  - box->xLeft);
+    const unsigned int BoxHeight =  (box->yBottom - box->yTop);
+
+    const float x_mc  =  (box->xLeft + r) + (BoxWidth  - 2*r)*(float)rand()/RAND_MAX;
+    const float y_mc  =  (box->yTop  + r) + (BoxHeight - 2*r)*(float)rand()/RAND_MAX;
 
     particle->pos.x = x_mc;
     particle->pos.y = y_mc; 

@@ -14,7 +14,7 @@ typedef struct
 } Histogram;
 
 void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histogram);
-void HistogramInit(Histogram* histogram, size_t Nbins, float min, float max);
+bool HistogramInit(Histogram* histogram, size_t Nbins, float min, float max);
 void HistogramRelease(Histogram* histogram);
 void HistogramFillBins(Rectangle* bin, uint64_t binValue, float scalingFactor, float MaxHeight);
 
@@ -78,7 +78,11 @@ int main(void)
     const float min     = 0;
     const float max     = 45;
     const size_t Nbins  = 20;
-    HistogramInit(&histogram, Nbins, min, max);
+    if(!HistogramInit(&histogram, Nbins, min, max))
+    {
+        perror("Could not init Histogram: allocation fail");
+        return EXIT_FAILURE;
+    }
 
     //Histogram Rectangle;
     float xStart           = (0.6)*windowWidth;
@@ -107,9 +111,9 @@ int main(void)
 
     float dt =  1.0f / (float)targetFPS;
 
-    float MinSpeed     = 0.f;
-    float MaxSpeed     = 0.f;
-    float AverageSpeed = 0.f;
+    float minSpeed     = 0.f;
+    float maxSpeed     = 0.f;
+    float averageSpeed = 0.f;
 
     // SetTargetFPS(targetFPS);
     while (!WindowShouldClose())
@@ -127,7 +131,7 @@ int main(void)
 
         if(frameCounter%10 == 0 )
         {
-            ParticleUpdateInfo(&MinSpeed, &MaxSpeed, &AverageSpeed, particle, N_part);
+            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particle, N_part);
             HistogramCompute(particle, N_part, &histogram);
             for (size_t n = 0; n < Nbins; n++)
             {
@@ -155,7 +159,7 @@ int main(void)
                 DrawTextureNPatch(nPatchTexture, v3PatchInfo, bins[n], origin, 0.0f, WHITE);
             }
             DrawFPS(GetScreenWidth()*(0.05), GetScreenHeight()*(0.0125));
-            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", MinSpeed, MaxSpeed, AverageSpeed), GetScreenWidth()*(0.3), GetScreenHeight()*(0.0125), 18, BLACK);
+            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", minSpeed, maxSpeed, averageSpeed), GetScreenWidth()*(0.3), GetScreenHeight()*(0.0125), 18, BLACK);
 
         EndDrawing();
         frameCounter++;
@@ -167,7 +171,7 @@ int main(void)
     UnloadRenderTexture(particleRenderTex);
     UnloadRenderTexture(boxTexture);
     UnloadTexture(nPatchTexture);
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 
@@ -192,13 +196,19 @@ void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histo
 }
 
 
-void HistogramInit(Histogram* histogram, size_t Nbins, float min, float max)
+bool HistogramInit(Histogram* histogram, size_t Nbins, float min, float max)
 {
-    uint64_t* data       = calloc(Nbins, sizeof(uint64_t));
+    uint64_t* data = calloc(Nbins, sizeof(uint64_t));
+    if (data == NULL)
+    {
+        return false;
+    }
+    
     histogram->binValues = data;
     histogram->max       = max;
     histogram->max       = max;
     histogram->Nbins     = Nbins;    
+    return true;
 }
 
 void HistogramRelease(Histogram* histogram)

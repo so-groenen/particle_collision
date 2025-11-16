@@ -93,18 +93,18 @@ void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
 {
     float px_CM     = 0.f;
     float py_CM     = 0.f;
-    float TotalMass = 0.f;
+    float totalMass = 0.f;
 
     for (size_t i = 0; i < N; i++)
     {
         px_CM     += particles[i].vel.x*particles[i].mass;
         py_CM     += particles[i].vel.y*particles[i].mass;
-        TotalMass += particles[i].mass;
+        totalMass += particles[i].mass;
     }
     for (size_t i = 0; i < N; i++)
     {
-        particles[i].vel.x -= px_CM/(TotalMass);
-        particles[i].vel.y -= py_CM/(TotalMass);
+        particles[i].vel.x -= px_CM/(totalMass);
+        particles[i].vel.y -= py_CM/(totalMass);
     }
 }
 
@@ -114,12 +114,13 @@ float ParticleGetVelocity(const Particle* particle)
 }
 
 
-void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N)
+void ParticleUpdateInfo(float* minSpeed, float* maxSpeed, float* averageSpeed, const Particle* particles, size_t N)
 {
-    float sum   = 0;
+    float sum   = 0.f;
     float min   = 1E6;
-    float max   = 0;
-    float speed = 0;
+    float max   = 0.f;
+    float speed = 0.f;
+    
     for (size_t i = 0; i < N; i++)
     {
         speed = ParticleGetVelocity(&particles[i]);
@@ -133,7 +134,7 @@ void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, c
         }
         sum += speed;
     }
-    (*MinSpeed)     = min;
-    (*MaxSpeed)     = max;
-    (*AverageSpeed) = (sum/(float)N);
+    (*minSpeed)     = min;
+    (*maxSpeed)     = max;
+    (*averageSpeed) = (sum/(float)N);
 }
