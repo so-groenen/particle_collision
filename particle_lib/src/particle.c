@@ -1,6 +1,4 @@
-#include "particle.h"
-
-
+#include "particle_lib/particle.h"
 
 
 void ParticleSet(Particle* particle, Vector2 velocity, float radius, float mass)

@@ -1,7 +1,6 @@
 #ifndef VECTOR_ALGEBRA_H
 #define VECTOR_ALGEBRA_H
 
-
 #include "raylib.h"
 #include <stdint.h>
 #include <stdlib.h>

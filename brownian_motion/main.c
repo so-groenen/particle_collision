@@ -1,5 +1,5 @@
-#include "particle.h"
-#include "monte_carlo_particle_position_setter.h"
+#include "particle_lib/particle.h"
+#include "particle_lib/monte_carlo_particle_position_setter.h"
 #include <time.h>
 
 #define N_part 3000UL
@@ -10,7 +10,7 @@ int main(void)
 {
     const uint64_t windowWidth  = 480;
     const uint64_t windoWheight = 480;
-    InitWindow(windowWidth, windoWheight, "raylib [core] example - basic window");
+    InitWindow(windowWidth, windoWheight, "Brownian Motion");
     
     SetRandomSeed(123);
     srand(time(NULL));

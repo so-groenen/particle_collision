@@ -1,4 +1,4 @@
-#include "vector_algebra.h"
+#include "particle_lib/vector_algebra.h"
 
 
 Vector2 VectorGetRelative(const Vector2* v1, const Vector2* v2)

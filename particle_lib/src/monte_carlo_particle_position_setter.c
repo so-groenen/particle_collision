@@ -1,32 +1,6 @@
-#include "monte_carlo_particle_position_setter.h"
+#include "particle_lib/monte_carlo_particle_position_setter.h"
 
-
-// void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
-// {
-//     float r     =  particle->radius;
-//     float theta =  PI*(float)rand()/RAND_MAX;
-//     float x_mc  =  particle->pos.x + deltaR*cos(theta);
-//     float y_mc  =  particle->pos.y + deltaR*sin(theta);
-//     if ((x_mc) + r >= box->xRight)
-//     {
-//         x_mc -= ( (x_mc + r) - box->xRight);
-//     }
-//     if ((x_mc) - r <= box->xLeft)
-//     {
-//         x_mc += (box->xLeft - (x_mc - r));
-//     }
-//     if ((y_mc) - r <= box->yTop)
-//     {
-//         y_mc += (box->yTop - (y_mc - r));
-//     }
-//     if ((y_mc) + r >= box->yBottom)
-//     {
-//         y_mc -= ( (y_mc + r) - box->yBottom);
-//     }
-//     particle->pos.x = x_mc;
-//     particle->pos.y = y_mc; 
-// } 
-
+ 
 
 
 void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
@@ -59,11 +33,6 @@ bool MonteCarloShouldAccept(size_t index, const Particle* particle, size_t N_par
 void MonteCarloUpdatePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR)
 {
     uint64_t attempt = 0;
-    // while (MonteCarloShouldAccept(index, particles, N_part) == FAIL)
-    // {
-    //     MonteCarloSetProposalPosition(&particles[index], box, deltaR);
-    //     attempt++;   
-    // }
     do
     {
         MonteCarloSetProposalPosition(&particles[index], box, deltaR);

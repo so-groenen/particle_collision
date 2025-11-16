@@ -4,7 +4,6 @@
 #include "vector_algebra.h"
 
 
-
 typedef struct 
 {
     Vector2 pos;
