@@ -1,6 +1,6 @@
-#include "vectorAlgebra.h"
+// #include "vectorAlgebra.h"
 #include "particle.h"
-#include "MonteCarloOverlapRemover.h"
+#include "monte_carlo_particle_position_setter.h"
 #include <time.h>
 
 #define N_part 2000UL
@@ -13,7 +13,6 @@ typedef struct
     size_t    Nbins;
 } Histogram;
 
-// void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N);
 void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histogram);
 void HistogramInit(Histogram* histogram, size_t Nbins, float min, float max);
 void HistogramRelease(Histogram* histogram);
@@ -57,8 +56,6 @@ int main(void)
     Vector2 pos          = {0};
     Vector2 vel          = {0};
     
-
-
     Particle particle[N_part];
 
     for (size_t i = 0; i < N_part; i++)
@@ -67,30 +64,27 @@ int main(void)
         ParticleSet(&particle[i], vel, radius, mass);
     }
     ParticleRemoveCenterOfMass(particle, N_part);
-    // particle[BrownianIndex].mass   = BrownianMass;
-    // particle[BrownianIndex].radius = BrownianRadius;
-
-    // MonteCarlo_UpdateParticlePosition(BrownianIndex, particle, 0, &Box, radius);
+ 
     for (size_t n = 0; n < N_part; n++)
     {
         size_t ParticleNumberToCheck = n;
-        MonteCarlo_UpdateParticlePosition(n, particle, ParticleNumberToCheck, &box, radius);
+        MonteCarloUpdatePosition(n, particle, ParticleNumberToCheck, &box, radius);
     }
 
-    RenderTexture2D ParticleRenderer = ParticleCreateRenderTexture(particle[1].radius);
+    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particle[1].radius);
  
 
-    Histogram histogram   = {0};
-    const float min         = 0;
-    const float max         = 45;
-    const size_t Nbins      = 20;
+    Histogram histogram = {0};
+    const float min     = 0;
+    const float max     = 45;
+    const size_t Nbins  = 20;
     HistogramInit(&histogram, Nbins, min, max);
 
-        //Histogram Rectangle;
+    //Histogram Rectangle;
     float xStart           = (0.6)*windowWidth;
     float yStart           = (0.9)*windoWheight;
     float binRecWidth      = 16.0f;
-    float binRecheightINIT = 32.0f;
+    float binRecHeightIinit = 32.0f;
 
     // float scalingFactor    = 3; // scaling between binValues --> binRectangle height on the screen.
     float MaxHeight        = (0.8)*GetScreenHeight();
@@ -104,7 +98,7 @@ int main(void)
     Rectangle bins[Nbins];
     for (size_t n = 0; n < Nbins; n++)
     {
-        bins[n] = (Rectangle){xStart + n*binRecWidth, yStart, binRecWidth, binRecheightINIT};
+        bins[n] = (Rectangle){xStart + n*binRecWidth, yStart, binRecWidth, binRecHeightIinit};
     }
     
     // <-- Simulation Start -->
@@ -113,7 +107,9 @@ int main(void)
 
     float dt =  1.0f / (float)targetFPS;
 
-    float MinSpeed, MaxSpeed, AverageSpeed;
+    float MinSpeed     = 0.f;
+    float MaxSpeed     = 0.f;
+    float AverageSpeed = 0.f;
 
     // SetTargetFPS(targetFPS);
     while (!WindowShouldClose())
@@ -152,7 +148,7 @@ int main(void)
             DrawTextureV(boxTexture.texture, (Vector2){0, 0}, WHITE); // when drawing the particles, the position is the edge of the texture, not the center. We can offset it here, but also at the particle level
             for (size_t i = 0; i < N_part; i++)
             {
-                DrawTextureV(ParticleRenderer.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
+                DrawTextureV(particleRenderTex.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
             }
             for (size_t n = 0; n < Nbins; n++)
             {
@@ -168,39 +164,14 @@ int main(void)
     CloseWindow();
 
     HistogramRelease(&histogram);
-    UnloadRenderTexture(ParticleRenderer);
+    UnloadRenderTexture(particleRenderTex);
     UnloadRenderTexture(boxTexture);
     UnloadTexture(nPatchTexture);
     return 0;
 }
 
 
-
-
-// void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N)
-// {
-//     float sum = 0;
-//     float min = 1E6;
-//     float max = 0;
-//     float speed = 0;
-//     for (size_t i = 0; i < N; i++)
-//     {
-//         speed = ParticleGetVelocity(&particles[i]);
-//         if (speed < min)
-//         {
-//             min = speed;
-//         }
-//         if (speed > max)
-//         {
-//             max = speed;
-//         }
-//         sum += speed;
-//     }
-//     (*MinSpeed)     = min;
-//     (*MaxSpeed)     = max;
-//     (*AverageSpeed) = (sum/(float)N);
-// }
-
+ 
 
 void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histogram)
 {

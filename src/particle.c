@@ -5,9 +5,12 @@
 
 void ParticleSet(Particle* particle, Vector2 velocity, float radius, float mass)
 {
-    (*particle) = (Particle){.vel    = velocity,
-                               .radius = radius,
-                               .mass   = mass};
+    (*particle) = (Particle)
+    {
+        .vel    = velocity,
+        .radius = radius,
+        .mass   = mass
+    };
 }
 void ParticleLogInfo(const Particle* p, size_t N)
 {
@@ -18,9 +21,8 @@ void ParticleLogInfo(const Particle* p, size_t N)
 }
 RenderTexture2D ParticleCreateRenderTexture(float radius)
 {
-    int RendererTextureLen   = 2*(int)radius;
-
-    RenderTexture2D renderer = LoadRenderTexture(RendererTextureLen, RendererTextureLen);
+    int rendererTextureLen   = 2*(int)radius;
+    RenderTexture2D renderer = LoadRenderTexture(rendererTextureLen, rendererTextureLen);
 
     BeginTextureMode(renderer);
     ClearBackground(RAYWHITE);
@@ -35,54 +37,53 @@ void ParticleMove(Particle* particle, float dt)
 }
 void ParticleCheckBoundary(Particle* particle, const Box* box)
 {
-    float r = particle->radius;
-    bool OutsideRight  =  (particle->pos.x + r >= box->xRight  && particle->vel.x > 0);
-    bool OutsideLeft   =  (particle->pos.x - r <= box->xLeft   && particle->vel.x < 0);
+    float r            = particle->radius;
+    bool outsideRight  = (particle->pos.x + r >= box->xRight  && particle->vel.x > 0);
+    bool outsideLeft   = (particle->pos.x - r <= box->xLeft   && particle->vel.x < 0);
 
-    bool OutsideTop    =  (particle->pos.y - r <= box->yTop    && particle->vel.y < 0);
-    bool OutsideBottom =  (particle->pos.y + r >= box->yBottom && particle->vel.y > 0);
+    bool outsideTop    = (particle->pos.y - r <= box->yTop    && particle->vel.y < 0);
+    bool outsideBottom = (particle->pos.y + r >= box->yBottom && particle->vel.y > 0);
 
-    if (OutsideRight || OutsideLeft)
+    if (outsideRight || outsideLeft)
     {
         particle->vel.x *= -1;
     }
-    if (OutsideTop || OutsideBottom)
+    if (outsideTop || outsideBottom)
     {
         particle->vel.y *= -1;
     }
 }
 void ParticleCheckCollisions(Particle* particles, size_t N)
 {
-    float distSqr;
-    float m_i;
-    float m_j;
-    float m_transfer;
-    Vector2 V_ij;
-    Vector2 deltaV_i;
-    Vector2 momentum_transfer;
-    Vector2 R_ij;
-    float   VdotR;
-    
+    float distSqr    = 0.f;
+    float m_i        = 0.f;
+    float m_j        = 0.f;
+    float m_transfer = 0.f;
+    Vector2 V_ij     = {0};
+    Vector2 R_ij     = {0};
+    Vector2 deltaV_i = {0};
+    Vector2 momentum_transfer = {0};
+    float  VdotR = 0.f;
     for (size_t i = 0; i < N-1; i++)
     {
         for (size_t j = i+1; j < N; j++)
         {
             if(CheckCollisionCircles(particles[i].pos, particles[i].radius, particles[j].pos, particles[j].radius))
             {
-                R_ij    = getRelativeVector(&particles[i].pos, &particles[j].pos);
-                V_ij    = getRelativeVector(&particles[i].vel, &particles[j].vel);
-                VdotR   = dotProd(&R_ij, &V_ij);
-                distSqr = dotProd(&R_ij, &R_ij);
+                R_ij    = VectorGetRelative(&particles[i].pos, &particles[j].pos);
+                V_ij    = VectorGetRelative(&particles[i].vel, &particles[j].vel);
+                VdotR   = VectorGetDotProd(&R_ij, &V_ij);
+                distSqr = VectorGetDotProd(&R_ij, &R_ij);
                 if(VdotR < 0)
                 {
                     m_i        = particles[i].mass;
                     m_j        = particles[j].mass;
                     m_transfer = (2*m_i*m_j)/(m_i+m_j);
 
-                    momentum_transfer = scaleVec( m_transfer*( VdotR/distSqr), &R_ij );
+                    momentum_transfer = VectorScale( m_transfer*( VdotR/distSqr), &R_ij );
                     
-                    addVecFactor(&particles[i].vel, &momentum_transfer, +(1/m_i));
-                    addVecFactor(&particles[j].vel, &momentum_transfer, -(1/m_j));
+                    VectorScaleAndAddInPlace(&particles[i].vel, &momentum_transfer, + (1/m_i));
+                    VectorScaleAndAddInPlace(&particles[j].vel, &momentum_transfer, - (1/m_j));
                 }
             }
         }
@@ -90,13 +91,14 @@ void ParticleCheckCollisions(Particle* particles, size_t N)
 }
 void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
 {
-    float px_CM = 0;
-    float py_CM = 0;
-    float TotalMass = 0;
+    float px_CM     = 0.f;
+    float py_CM     = 0.f;
+    float TotalMass = 0.f;
+
     for (size_t i = 0; i < N; i++)
     {
-        px_CM += particles[i].vel.x*particles[i].mass;
-        py_CM += particles[i].vel.y*particles[i].mass;
+        px_CM     += particles[i].vel.x*particles[i].mass;
+        py_CM     += particles[i].vel.y*particles[i].mass;
         TotalMass += particles[i].mass;
     }
     for (size_t i = 0; i < N; i++)
@@ -108,15 +110,15 @@ void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
 
 float ParticleGetVelocity(const Particle* particle)
 {
-    return  sqrt(dotProd(&particle->vel, &particle->vel));
+    return  sqrt(VectorGetDotProd(&particle->vel, &particle->vel));
 }
 
 
 void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N)
 {
-    float sum = 0;
-    float min = 1E6;
-    float max = 0;
+    float sum   = 0;
+    float min   = 1E6;
+    float max   = 0;
     float speed = 0;
     for (size_t i = 0; i < N; i++)
     {

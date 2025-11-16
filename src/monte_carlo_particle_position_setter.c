@@ -1,7 +1,7 @@
-#include "MonteCarloOverlapRemover.h"
+#include "monte_carlo_particle_position_setter.h"
 
 
-// void MonteCarlo_setProposalPosition(Particle* particle, const Box* box, float deltaR)
+// void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
 // {
 //     float r     =  particle->radius;
 //     float theta =  PI*(float)rand()/RAND_MAX;
@@ -29,7 +29,7 @@
 
 
 
-void MonteCarlo_setProposalPosition(Particle* particle, const Box* box, float deltaR)
+void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
 {
     float r                =  particle->radius;
     unsigned int BoxWidth  =  (box->xRight  - box->xLeft);
@@ -43,7 +43,7 @@ void MonteCarlo_setProposalPosition(Particle* particle, const Box* box, float de
 
 
 
-bool MonteCarlo_getAcceptance(size_t index, Particle* particle, size_t N_part)
+bool MonteCarloShouldAccept(size_t index, const Particle* particle, size_t N_part)
 {
     for (size_t n = 0; n < N_part; n++)
     {
@@ -55,19 +55,19 @@ bool MonteCarlo_getAcceptance(size_t index, Particle* particle, size_t N_part)
     return SUCCESS;
 }
 
-void MonteCarlo_UpdateParticlePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR)
+void MonteCarloUpdatePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR)
 {
     uint64_t attempt = 0;
-    // while (MonteCarlo_getAcceptance(index, particles, N_part) == FAIL)
+    // while (MonteCarloShouldAccept(index, particles, N_part) == FAIL)
     // {
-    //     MonteCarlo_setProposalPosition(&particles[index], box, deltaR);
+    //     MonteCarloSetProposalPosition(&particles[index], box, deltaR);
     //     attempt++;   
     // }
     do
     {
-        MonteCarlo_setProposalPosition(&particles[index], box, deltaR);
+        MonteCarloSetProposalPosition(&particles[index], box, deltaR);
         attempt++;   
-    } while (MonteCarlo_getAcceptance(index, particles, N_part) == FAIL);
+    } while (MonteCarloShouldAccept(index, particles, N_part) == FAIL);
     
 
     if(DEBUG) printf("MONTECARLO: (particle %zu) attempt = %lu\n", index, attempt);

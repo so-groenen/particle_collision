@@ -1,6 +1,6 @@
-#include "vectorAlgebra.h"
+// #include "vectorAlgebra.h"
 #include "particle.h"
-#include "MonteCarloOverlapRemover.h"
+#include "monte_carlo_particle_position_setter.h"
 #include <time.h>
 
 #define N_part 3000UL
@@ -63,14 +63,14 @@ int main(void)
     particle[BrownianIndex].mass   = BrownianMass;
     particle[BrownianIndex].radius = BrownianRadius;
 
-    MonteCarlo_UpdateParticlePosition(BrownianIndex, particle, 0, &Box, radius);
+    MonteCarloUpdatePosition(BrownianIndex, particle, 0, &Box, radius);
     for (size_t n = 1; n < N_part; n++)
     {
         size_t ParticleNumberToCheck = n;
-        MonteCarlo_UpdateParticlePosition(n, particle, ParticleNumberToCheck, &Box, radius);
+        MonteCarloUpdatePosition(n, particle, ParticleNumberToCheck, &Box, radius);
     }
 
-    RenderTexture2D ParticleRenderer = ParticleCreateRenderTexture(particle[1].radius);
+    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particle[1].radius);
 
     // RenderTexture2D BronwianRenderer = ParticleCreateRenderTexture(particle[BrownianIndex].radius);
     Texture2D BrownianWeary = LoadTexture("weary-face-emoji-clipart-md.png");
@@ -125,7 +125,7 @@ int main(void)
                 }
                 else
                 {
-                    DrawTextureV(ParticleRenderer.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
+                    DrawTextureV(particleRenderTex.texture, (Vector2){particle[i].pos.x - particle[i].radius, particle[i].pos.y - particle[i].radius}, WHITE);
                 }   
             }
             DrawFPS(GetScreenWidth()*(0.05), GetScreenHeight()*(0.0125));
@@ -136,7 +136,7 @@ int main(void)
     }
 
     CloseWindow();
-    UnloadRenderTexture(ParticleRenderer);
+    UnloadRenderTexture(particleRenderTex);
     UnloadTexture(BrownianWeary);
     UnloadRenderTexture(boxTexture);
     return 0;
@@ -144,82 +144,4 @@ int main(void)
 
 
 
-
-// void ParticleUpdateInfo(float* MinSpeed, float* MaxSpeed, float* AverageSpeed, const Particle* particles, size_t N)
-// {
-//     float sum = 0;
-//     float min = 1E6;
-//     float max = 0;
-//     float speed = 0;
-//     for (size_t i = 0; i < N; i++)
-//     {
-//         speed = ParticleGetVelocity(&particles[i]);
-//         if (speed < min)
-//         {
-//             min = speed;
-//         }
-//         if (speed > max)
-//         {
-//             max = speed;
-//         }
-//         sum += speed;
-//     }
-//     (*MinSpeed)     = min;
-//     (*MaxSpeed)     = max;
-//     (*AverageSpeed) = (sum/(float)N);
-// }
-
-
-// void computeHistogram(const Particle* particles, size_t N_part, histogram_t* histogram)
-// {
-//     float Binwidth = (histogram->max - histogram->min) / histogram->Nbins;
-//     size_t bin_number;
-//     for (size_t i = 0; i < N_part; i++)
-//     {
-//         bin_number = (size_t)(  ParticleGetVelocity(&particles[i]) / Binwidth  );
-//         if (bin_number < histogram->Nbins)
-//         {
-//             histogram->binValues[bin_number] += 1;
-//         }
-//         else
-//         {
-//             histogram->binValues[(histogram->Nbins-1)] += 1; // everything greater than "max" is put in the last bin...
-//         }
-//     }
-// }
-
-
-// void initHistogram(histogram_t* histogram, size_t Nbins, float min, float max)
-// {
-//     uint64_t* data = calloc(Nbins, sizeof(uint64_t));
-//     histogram->binValues = data;
-//     histogram->max = max;
-//     histogram->max = max;
-//     histogram->Nbins = Nbins;    
-// }
-
-// void freeHistogram(histogram_t* histogram)
-// {
-//     free(histogram->binValues);
-// }
-
-
-
-// void FillHistogramBins(Rectangle* bin, uint64_t BinValue, float scalingFactor, float MaxHeight)
-// {
-//     float oldHeight = bin->height;
-//     float NewHeight = (scalingFactor * BinValue);
-
-//     if(NewHeight < 10.0f)
-//     {
-//         NewHeight = 10.0f;
-//     }
-//     if(NewHeight > MaxHeight)
-//     {
-//         NewHeight = MaxHeight;
-//     }
-//     float deltaH = NewHeight - oldHeight;
-//     bin->height  = NewHeight;
-//     bin->y      -= deltaH;
-// }
-
+ 

@@ -1,7 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include "vectorAlgebra.h"
+#include "vector_algebra.h"
 
 
 

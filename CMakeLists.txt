@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(particle_systems VERSION 0.1.0 LANGUAGES C)
 
-set(PARTICLE_LIB_SRC src/MonteCarloOverlapRemover.c
+set(PARTICLE_LIB_SRC src/monte_carlo_particle_position_setter.c
                      src/particle.c
-                     src/vectorAlgebra.c)
+                     src/vector_algebra.c)
 
 add_executable(particle_systems ${PARTICLE_LIB_SRC}
-                                # examples/brownian_motion.c
-                                examples/maxwell_boltzmann.c)
+                                examples/brownian_motion.c)
+                                # examples/maxwell_boltzmann.c)
 
 add_custom_command(TARGET particle_systems PRE_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy 
