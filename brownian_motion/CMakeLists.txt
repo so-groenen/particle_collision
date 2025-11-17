@@ -6,7 +6,6 @@ add_executable(brownian_motion main.c)
  
 add_custom_command(TARGET brownian_motion PRE_BUILD
    COMMAND ${CMAKE_COMMAND} -E copy 
-#    ${CMAKE_CURRENT_SOURCE_DIR}/assets/weary-face-emoji-clipart-md.png 
    ${CMAKE_CURRENT_SOURCE_DIR}/assets/sphere.png 
    $<TARGET_FILE_DIR:brownian_motion>)                                
               

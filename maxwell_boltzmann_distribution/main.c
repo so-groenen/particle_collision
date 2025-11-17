@@ -3,92 +3,82 @@
 #include "histogram.h"
 #include <time.h>
 
-#define N_part 2000UL
 
- 
+#define WINDOW_WIDTH             1528UL
+#define WINDOW_HEIGHT            960UL
+#define N_PARTICLES              2000UL
+#define NO_ROTATION              0.f
+#define NO_ZOOM                  1.f
+#define THICKNESS                2.f
+#define BACKGROUND_COLOR         RAYWHITE
+#define PARTICLE_RADIUS          4.f
+#define PARTICLE_VELOCITY        25.f//pixel/sec
+#define PARTICLE_MASS            1.f    
+#define UPDATE_FREQUENCY/*every*/3/*frames*/ 
+#define HISTO_NBINS              20UL
+#define HISTO_MIN_SPEED          0.f
+#define HISTO_MAX_SPEED          50.f
 
 int main(void)
 {
-    const uint64_t windowWidth  = 860;
-    const uint64_t windoWheight = 480;
-    InitWindow(windowWidth, windoWheight, "Maxwell-Boltzmann distribution");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Maxwell-Boltzmann distribution");
     
-    SetRandomSeed(123);
-    srand(time(NULL));
-
+    SetRandomSeed(time(NULL));
+ 
     // <-- Box for particles --> 
     Box box = 
     {
-        .xLeft   =   windowWidth*(0.05),       
-        .xRight  =   (0.55)*windowWidth,
-        .yTop    =   windoWheight*(0.05),
-        .yBottom =   (0.95)*windoWheight
+        .xLeft   =   (int)(0.05*WINDOW_WIDTH),       
+        .xRight  =   (int)(0.55*WINDOW_WIDTH),
+        .yTop    =   (int)(0.05*WINDOW_HEIGHT),
+        .yBottom =   (int)(0.95*WINDOW_HEIGHT)
     };
 
-    RenderTexture2D boxTexture = LoadRenderTexture(windowWidth, windoWheight);
-    
-    const float thickness = 1;
-    BeginTextureMode(boxTexture);
-        ClearBackground(RAYWHITE);
-        DrawLineEx((Vector2){box.xLeft,  box.yBottom}, (Vector2){box.xLeft,  box.yTop},    thickness, BLACK);
-        DrawLineEx((Vector2){box.xRight, box.yBottom}, (Vector2){box.xRight, box.yTop},    thickness, BLACK);
-        DrawLineEx((Vector2){box.xLeft,  box.yBottom}, (Vector2){box.xRight, box.yBottom}, thickness, BLACK);
-        DrawLineEx((Vector2){box.xLeft,  box.yTop},    (Vector2){box.xRight, box.yTop},    thickness, BLACK);
-    EndTextureMode();
-
-
     // < -- Particles --> 
-    const float radius   = 2;
-    const float velocity = 20; //  pixel / secondes
-    const float mass     = 1;
-    Vector2 pos          = {0};
-    Vector2 vel          = {0};
+    Vector2 pos = {0};
+    Vector2 vel = {0};
     
-    Particle particles[N_part];
-
-    for (size_t i = 0; i < N_part; i++)
+    Particle particles[N_PARTICLES];
+    for (size_t i = 0; i < N_PARTICLES; i++)
     {
-        vel = (Vector2){GetRandomValue(-velocity, velocity), GetRandomValue(-velocity, velocity)};
-        ParticleSet(&particles[i], pos, vel, radius, mass);
+        vel = (Vector2){GetRandomValue(-PARTICLE_VELOCITY, PARTICLE_VELOCITY), GetRandomValue(-PARTICLE_VELOCITY, PARTICLE_VELOCITY)};
+        ParticleSet(&particles[i], pos, vel, PARTICLE_RADIUS, PARTICLE_MASS);
     }
-    ParticleRemoveCenterOfMass(particles, N_part);
+    ParticleRemoveCenterOfMass(particles, N_PARTICLES);
  
-    for (size_t n = 0; n < N_part; n++)
+    puts("[INFO]: MonteCarlo set positions: Start");
+    for (size_t n = 0; n < N_PARTICLES; n++)
     {
-        size_t ParticleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particles, ParticleNumberToCheck, &box, radius);
+        size_t particleNumberToCheck = n;
+        MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS);
     }
+    puts("[INFO]: MonteCarlo set positions: finished");
 
     RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particles[1].radius, BLACK);
  
-
     Histogram histogram = {0};
-    const float min     = 0;
-    const float max     = 45;
-    const size_t Nbins  = 20;
-    if(!HistogramInit(&histogram, Nbins, min, max))
+    if(!HistogramInit(&histogram, HISTO_NBINS, HISTO_MIN_SPEED, HISTO_MAX_SPEED))
     {
         perror("Could not init Histogram: allocation fail");
         return EXIT_FAILURE;
     }
 
     //Histogram Rectangle;
-    float xStart           = (0.6)*windowWidth;
-    float yStart           = (0.9)*windoWheight;
-    float binRecWidth      = 16.0f;
+    float xStart            = (0.6)*WINDOW_WIDTH;
+    float yStart            = (0.9)*WINDOW_HEIGHT;
+    float binRecWidth       = roundf(0.8f*(WINDOW_WIDTH-xStart)/HISTO_NBINS); 
     float binRecHeightIinit = 32.0f;
 
-    // float scalingFactor    = 3; // scaling between binValues --> binRectangle height on the screen.
-    float MaxHeight        = (0.8)*GetScreenHeight();
-    float scalingFactor    =  MaxHeight/(0.15*N_part);
+    float maxHeight        = 0.8f*WINDOW_HEIGHT;
+    float scalingFactor    = maxHeight/(0.15f*N_PARTICLES); // scaling between binValues --> binRectangle height on the screen
 
 
     Texture2D nPatchTexture = LoadTexture("ninepatch_button.png");
-    NPatchInfo v3PatchInfo  = { (Rectangle){ 0.0f, 192.0f, 64.0f, 64.0f }, 6, 6, 6, 6, NPATCH_NINE_PATCH}; // from raylib
-    Vector2 origin          = {0.0f, 0.0f}; // for rotation, but rotation is kept at 0.
+    NPatchInfo v3PatchInfo  = {(Rectangle){ 0.0f, 192.0f, 64.0f, 64.0f }, 6, 6, 6, 6, NPATCH_NINE_PATCH}; // from raylib
+    Vector2 origin          = {0};  
 
-    Rectangle bins[Nbins];
-    for (size_t n = 0; n < Nbins; n++)
+    Rectangle bins[HISTO_NBINS];
+    for (size_t n = 0; n < HISTO_NBINS; n++)
     {
         bins[n] = (Rectangle){xStart + n*binRecWidth, yStart, binRecWidth, binRecHeightIinit};
     }
@@ -108,44 +98,39 @@ int main(void)
     {
         
         // dt = GetFrameTime();
-    
-        // <-- particle updates --> //
-        ParticleCheckCollisions(particles, N_part);
-        for (size_t i = 0; i < N_part; i++)
+        ParticleCheckCollisions(particles, N_PARTICLES);
+        for (size_t i = 0; i < N_PARTICLES; i++)
         {
             ParticleCheckBoundary(&particles[i], &box); //Implicit Euler: First update velocity, then update positions accordingly.
             ParticleMove(&particles[i], dt);
         }
 
-        if(frameCounter%10 == 0 )
+        if(frameCounter%UPDATE_FREQUENCY == 0 )
         {
-            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particles, N_part);
-            HistogramCompute(particles, N_part, &histogram);
-            for (size_t n = 0; n < Nbins; n++)
+            ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particles, N_PARTICLES);
+            HistogramCompute(particles, N_PARTICLES, &histogram);
+            for (size_t n = 0; n < HISTO_NBINS; n++)
             {
-                HistogramFillBins(&bins[n], histogram.binValues[n], scalingFactor, MaxHeight);
+                HistogramFillBins(&bins[n], histogram.binValues[n], scalingFactor, maxHeight);
             }
-            memset(histogram.binValues, 0, Nbins*sizeof(uint64_t));
-
-            if(frameCounter == UINT64_MAX - 1)
+            memset(histogram.binValues, 0, HISTO_NBINS*sizeof(uint64_t));
+            if(frameCounter == UINT64_MAX)
             {
                 frameCounter = 0;
             }
         }
 
-
         BeginDrawing();
-            ClearBackground(RAYWHITE);
-
-            DrawTextureV(boxTexture.texture, (Vector2){0, 0}, WHITE); // when drawing the particles, the position is the edge of the texture, not the center. We can offset it here, but also at the particle level
-            for (size_t i = 0; i < N_part; i++)
+            ClearBackground(BACKGROUND_COLOR);
+            for (size_t i = 0; i < N_PARTICLES; i++)
             {
-                DrawTextureV(particleRenderTex.texture, (Vector2){particles[i].pos.x - particles[i].radius, particles[i].pos.y - particles[i].radius}, WHITE);
+                DrawTextureV(particleRenderTex.texture, ParticleGetCenter(&particles[i]), WHITE);
             }
-            for (size_t n = 0; n < Nbins; n++)
+            for (size_t n = 0; n < HISTO_NBINS; n++)
             {
-                DrawTextureNPatch(nPatchTexture, v3PatchInfo, bins[n], origin, 0.0f, WHITE);
+                DrawTextureNPatch(nPatchTexture, v3PatchInfo, bins[n], origin, NO_ROTATION, WHITE);
             }
+            BoxRender(&box, THICKNESS, BLACK);
             DrawFPS(GetScreenWidth()*(0.05), GetScreenHeight()*(0.0125));
             DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", minSpeed, maxSpeed, averageSpeed), GetScreenWidth()*(0.3), GetScreenHeight()*(0.0125), 18, BLACK);
 
@@ -154,10 +139,8 @@ int main(void)
     }
 
     CloseWindow();
-
     HistogramRelease(&histogram);
     UnloadRenderTexture(particleRenderTex);
-    UnloadRenderTexture(boxTexture);
     UnloadTexture(nPatchTexture);
     return EXIT_SUCCESS;
 }

@@ -12,6 +12,10 @@ Vector2 BoxGetUpperLeft(const Box* box)
 {
     return (Vector2){box->xLeft, box->yTop}; 
 }
+Vector2 BoxGetCenter(const Box* box)
+{
+    return (Vector2){box->xLeft + BoxGetWidth(box)/2.f, box->yTop + BoxGetHeigth(box)/2.f}; 
+}
 void BoxRender(const Box* box, float thickness, Color color)
 {
     DrawLineEx((Vector2){box->xLeft,  box->yBottom}, (Vector2){box->xLeft,  box->yTop},    thickness, color);
@@ -19,7 +23,6 @@ void BoxRender(const Box* box, float thickness, Color color)
     DrawLineEx((Vector2){box->xLeft,  box->yBottom}, (Vector2){box->xRight, box->yBottom}, thickness, color);
     DrawLineEx((Vector2){box->xLeft,  box->yTop},    (Vector2){box->xRight, box->yTop},    thickness, color);
 }
-
 
 void ParticleSet(Particle* particle, Vector2 position, Vector2 velocity, float radius, float mass)
 {

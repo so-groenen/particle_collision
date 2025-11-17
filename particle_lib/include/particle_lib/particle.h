@@ -10,7 +10,7 @@ typedef struct
     Vector2 vel;
     float radius;
     float mass;
-}Particle; 
+} Particle; 
 
 typedef struct 
 {
@@ -19,9 +19,11 @@ typedef struct
     int yTop;
     int yBottom; 
 } Box;
+
 int BoxGetWidth(const Box* box);
 int BoxGetHeigth(const Box* box);
 Vector2 BoxGetUpperLeft(const Box* box);
+Vector2 BoxGetCenter(const Box* box);
 void BoxRender(const Box* box, float thickness, Color color);
 
 Vector2 ParticleGetCenter(const Particle* particle);

@@ -2,16 +2,20 @@
 #include "particle_lib/monte_carlo_particle_position_setter.h"
 #include <time.h>
 
-#define WINDOW_WIDTH     1028UL
-#define WINDOW_HEIGHT    960UL
-
-#define N_PARTICLES      3000UL
-#define BROWNIAN_INDEX   0UL
-#define NO_ROTATION      0.f
-
-#define THICKNESS        2.f
-#define BACKGROUND_COLOR RAYWHITE
-
+#define WINDOW_WIDTH        1028UL
+#define WINDOW_HEIGHT       960UL
+#define N_PARTICLES         2000UL
+#define BROWNIAN_INDEX      0UL
+#define NO_ROTATION         0.f
+#define NO_ZOOM             1.f
+#define THICKNESS           2.f
+#define BACKGROUND_COLOR    RAYWHITE
+#define TRACE_CIRCLE_RADIUS 2
+#define PARTICLE_RADIUS     4.f
+#define PARTICLE_VELOCITY   80.f
+#define PARTICLE_MASS       1.f    
+#define BROWNIAN_RADIUS     40.f
+#define BROWNIAN_MASS       4.f
 
 enum DrawMode
 {
@@ -23,55 +27,46 @@ enum DrawMode
 int main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brownian Motion");
-    
-    SetRandomSeed(123);
-    srand(time(NULL));
-
+    SetRandomSeed((unsigned int)time(NULL));
+ 
     // <-- Box for particles --> 
-    Box box = 
+    const Box box = 
     {
-        .xLeft   =   WINDOW_WIDTH*(0.05),       
-        .xRight  =   (0.95)*WINDOW_WIDTH,
-        .yTop    =   WINDOW_HEIGHT*(0.05),
-        .yBottom =   (0.95)*WINDOW_HEIGHT
+        .xLeft   = 0,       
+        .xRight  = (int)(WINDOW_WIDTH*0.9),
+        .yTop    = 0,
+        .yBottom = (int)(WINDOW_HEIGHT*0.9)
     };
 
     // < -- Particles --> 
-    const float radius   = 4.f;
-    const float velocity = 80.f; //  pixel / secondes
-    const float mass     = 1.f;
-    Vector2 pos          = {0};
-    Vector2 vel          = {0};
-    
-    const float brownianRadius = 40.f;
-    const float brownianMass   = 4.f;
-
-    // Setup particles
+    Vector2 pos = {0};
+    Vector2 vel = {0};
     Particle particles[N_PARTICLES];
+
     for (size_t i = 0; i < N_PARTICLES; i++)
     {
-        vel = (Vector2){GetRandomValue(-velocity, velocity), GetRandomValue(-velocity, velocity)};
-        ParticleSet(&particles[i], pos, vel, radius, mass);
+        vel = (Vector2){GetRandomValue(-PARTICLE_VELOCITY, PARTICLE_VELOCITY), GetRandomValue(-PARTICLE_VELOCITY, PARTICLE_VELOCITY)};
+        ParticleSet(&particles[i], pos, vel, PARTICLE_RADIUS, PARTICLE_MASS);
     }
     RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particles[1].radius, BLACK);
 
-    particles[BROWNIAN_INDEX].mass   = brownianMass;
-    particles[BROWNIAN_INDEX].radius = brownianRadius;
+    particles[BROWNIAN_INDEX].mass   = BROWNIAN_MASS;
+    particles[BROWNIAN_INDEX].radius = BROWNIAN_RADIUS;
 
-    MonteCarloUpdatePosition(BROWNIAN_INDEX, particles, 0, &box, radius);
-    for (size_t n = 1; n < N_PARTICLES; n++)
+    MonteCarloUpdatePosition(BROWNIAN_INDEX, particles, BROWNIAN_INDEX, &box, PARTICLE_RADIUS);
+    for (size_t n = BROWNIAN_INDEX+1; n < N_PARTICLES; n++)
     {
-        size_t ParticleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particles, ParticleNumberToCheck, &box, radius);
+        size_t particleNumberToCheck = n;
+        MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS);
     }
 
     // Brownian particle texture:
-    Texture2D brownianTexture         = LoadTexture("sphere.png");
-    int frameWidth                    = brownianTexture.width;
-    int frameHeight                   = brownianTexture.height;
-    Rectangle sourceRec               = { 0.0f, 0.0f, (float)frameWidth, (float)frameHeight };
-    Rectangle destRec   = { particles[BROWNIAN_INDEX].pos.x, particles[BROWNIAN_INDEX].pos.y, 2*brownianRadius, 2*brownianRadius};
-    Vector2 origin      = {0};
+    Texture2D brownianTexture = LoadTexture("sphere.png");
+    int frameWidth            = brownianTexture.width;
+    int frameHeight           = brownianTexture.height;
+    Vector2 origin            = {0};
+    Rectangle sourceRec       = {0.f, 0.f, (float)frameWidth, (float)frameHeight };
+    Rectangle destRec         = {particles[BROWNIAN_INDEX].pos.x, particles[BROWNIAN_INDEX].pos.y, 2*BROWNIAN_RADIUS, 2*BROWNIAN_RADIUS};
 
     // Setup canvas to draw the path
     RenderTexture2D canvas  = LoadRenderTexture(BoxGetWidth(&box), BoxGetHeigth(&box));
@@ -79,28 +74,35 @@ int main(void)
         ClearBackground(BACKGROUND_COLOR);
     EndTextureMode();
 
+    // center on box
+    Camera2D camera = 
+    {
+        .zoom     = NO_ZOOM,
+        .rotation = NO_ROTATION,
+        .offset   = (Vector2){WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f},
+        .target   = BoxGetCenter(&box),
+    };
+
     enum DrawMode drawMode = FullParticles;
 
-    // <-- Simulation Start -->
+    // <-- display infos -->
+    float minSpeed     = 0.f;
+    float maxSpeed     = 0.f;
+    float averageSpeed = 0.f;
+
+
     uint64_t targetFPS    = 100;
     uint64_t frameCounter = 0;
-
-    float dt        =  1.0f / (float)targetFPS;
-    float minSpeed, maxSpeed, averageSpeed;
-    Vector2 upperLeft = BoxGetUpperLeft(&box);
-    // SetTargetFPS(targetFPS);
+    float dt              = 1.0f / (float)targetFPS;
     while (!WindowShouldClose())
     {
-        
-        // dt = GetFrameTime();
-    
         ParticleCheckCollisions(particles, N_PARTICLES);
         for (size_t i = 0; i < N_PARTICLES; i++)
         {
             ParticleCheckBoundary(&particles[i], &box); //Implicit Euler: First update velocity, then update positions accordingly.
             ParticleMove(&particles[i], dt);
         }
-        if(frameCounter%10 == 0 )
+        if(frameCounter%10 == 0)
         {
             ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particles, N_PARTICLES);
         }
@@ -114,44 +116,43 @@ int main(void)
                 EndTextureMode();     
             }   
         }
-
         if (drawMode == BrownianPath)
         {
             BeginTextureMode(canvas);
-                DrawCircleV(VectorSubtract(&particles[BROWNIAN_INDEX].pos, &upperLeft), 2, BLUE);
+                DrawCircleV(particles[BROWNIAN_INDEX].pos, TRACE_CIRCLE_RADIUS, BLUE);
             EndTextureMode();
         }
 
-
         BeginDrawing();
             ClearBackground(BACKGROUND_COLOR);
-            if (drawMode == BrownianPath)
-            {
-                DrawTextureRec(canvas.texture, (Rectangle) {0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, upperLeft, WHITE);
-            }
-            else
-            {
-                Vector2 center = ParticleGetCenter(&particles[BROWNIAN_INDEX]);
-                destRec.x      = center.x;
-                destRec.y      = center.y;
-                DrawTexturePro(brownianTexture, sourceRec, destRec, origin, NO_ROTATION, WHITE);
-                for (size_t i = BROWNIAN_INDEX+1; i < N_PARTICLES; i++)
+            BeginMode2D(camera);
+                if (drawMode == BrownianPath)
                 {
-                    DrawTextureV(particleRenderTex.texture, ParticleGetCenter(&particles[i]), WHITE);
+                    DrawTextureRec(canvas.texture, (Rectangle) {0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, origin, WHITE);
                 }
-            }
-            BoxRender(&box, THICKNESS, BLACK);
-            DrawFPS(WINDOW_WIDTH*(0.05), WINDOW_HEIGHT*(0.0125));
-            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", minSpeed, maxSpeed, averageSpeed), WINDOW_WIDTH*(0.3), WINDOW_HEIGHT*(0.0125), 18, BLACK);
+                else
+                {
+                    Vector2 center = ParticleGetCenter(&particles[BROWNIAN_INDEX]);
+                    destRec.x      = center.x;
+                    destRec.y      = center.y;
+                    DrawTexturePro(brownianTexture, sourceRec, destRec, origin, NO_ROTATION, WHITE);
+                    for (size_t i = BROWNIAN_INDEX+1; i < N_PARTICLES; i++)
+                    {
+                        DrawTextureV(particleRenderTex.texture, ParticleGetCenter(&particles[i]), WHITE);
+                    }
+                }
+                BoxRender(&box, THICKNESS, BLACK);
+            EndMode2D();
+
+            DrawFPS(WINDOW_WIDTH*(0.05f), WINDOW_HEIGHT*(0.0125f));
+            DrawText(TextFormat("SpeedInfo: Min:%.2f, Max:%.2f, avg:%.2f", minSpeed, maxSpeed, averageSpeed), WINDOW_WIDTH*(0.3f), WINDOW_HEIGHT*(0.0125f), 18, BLACK);
         EndDrawing();
         frameCounter++;
     }
 
     CloseWindow();
     UnloadRenderTexture(particleRenderTex);
-    // UnloadRenderTexture(emptyParticleRenderTex);
     UnloadTexture(brownianTexture);
-    // UnloadRenderTexture(boxTexture);
     UnloadRenderTexture(canvas);
     return EXIT_SUCCESS;
 }
