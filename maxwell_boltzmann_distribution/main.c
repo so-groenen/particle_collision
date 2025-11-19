@@ -3,7 +3,6 @@
 #include "histogram.h"
 #include <time.h>
 
-
 #define WINDOW_WIDTH             1528UL
 #define WINDOW_HEIGHT            960UL
 #define N_PARTICLES              2000UL
@@ -14,7 +13,7 @@
 #define PARTICLE_RADIUS          4.f
 #define PARTICLE_VELOCITY        25.f//pixel/sec
 #define PARTICLE_MASS            1.f    
-#define UPDATE_FREQUENCY/*every*/3/*frames*/ 
+#define UPDATE_FREQUENCY/*every*/3/*frame*/ 
 #define HISTO_NBINS              20UL
 #define HISTO_MIN_SPEED          0.f
 #define HISTO_MAX_SPEED          50.f
@@ -22,7 +21,6 @@
 int main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Maxwell-Boltzmann distribution");
-    
     SetRandomSeed(time(NULL));
  
     // <-- Box for particles --> 
@@ -45,36 +43,44 @@ int main(void)
         ParticleSet(&particles[i], pos, vel, PARTICLE_RADIUS, PARTICLE_MASS);
     }
     ParticleRemoveCenterOfMass(particles, N_PARTICLES);
- 
+
+
     puts("[INFO]: MonteCarlo set positions: Start");
     for (size_t n = 0; n < N_PARTICLES; n++)
     {
         size_t particleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS);
+        if(!MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS))
+        {
+            fprintf(stderr, "Monte Carlo position update does not converge after %u trials\n", MONTECARLO_MAX_ATTEMPT);
+            CloseWindow();
+            return EXIT_FAILURE;
+        }
     }
     puts("[INFO]: MonteCarlo set positions: finished");
 
-    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particles[1].radius, BLACK);
- 
+
     Histogram histogram = {0};
     if(!HistogramInit(&histogram, HISTO_NBINS, HISTO_MIN_SPEED, HISTO_MAX_SPEED))
     {
-        perror("Could not init Histogram: allocation fail");
+        fprintf(stderr, "Could not init Histogram: allocation fail");
+        CloseWindow();
         return EXIT_FAILURE;
     }
 
+    RenderTexture2D particleRenderTex = ParticleCreateRenderTexture(particles[1].radius, BLACK);
+
     //Histogram Rectangle;
-    float xStart            = (0.6)*WINDOW_WIDTH;
-    float yStart            = (0.9)*WINDOW_HEIGHT;
+    float xStart            = 0.6f*WINDOW_WIDTH;
+    float yStart            = 0.9f*WINDOW_HEIGHT;
     float binRecWidth       = roundf(0.8f*(WINDOW_WIDTH-xStart)/HISTO_NBINS); 
     float binRecHeightIinit = 32.0f;
 
-    float maxHeight        = 0.8f*WINDOW_HEIGHT;
-    float scalingFactor    = maxHeight/(0.15f*N_PARTICLES); // scaling between binValues --> binRectangle height on the screen
+    float maxHeight         = 0.8f*WINDOW_HEIGHT;
+    float scalingFactor     = maxHeight/(0.15f*N_PARTICLES); // scaling between binValues --> binRectangle height on the screen
 
 
     Texture2D nPatchTexture = LoadTexture("ninepatch_button.png");
-    NPatchInfo v3PatchInfo  = {(Rectangle){ 0.0f, 192.0f, 64.0f, 64.0f }, 6, 6, 6, 6, NPATCH_NINE_PATCH}; // from raylib
+    NPatchInfo v3PatchInfo  = {(Rectangle){0.0f, 192.0f, 64.0f, 64.0f }, 6, 6, 6, 6, NPATCH_NINE_PATCH}; // from raylib
     Vector2 origin          = {0};  
 
     Rectangle bins[HISTO_NBINS];
@@ -96,7 +102,6 @@ int main(void)
     // SetTargetFPS(targetFPS);
     while (!WindowShouldClose())
     {
-        
         // dt = GetFrameTime();
         ParticleCheckCollisions(particles, N_PARTICLES);
         for (size_t i = 0; i < N_PARTICLES; i++)
@@ -105,7 +110,7 @@ int main(void)
             ParticleMove(&particles[i], dt);
         }
 
-        if(frameCounter%UPDATE_FREQUENCY == 0 )
+        if(frameCounter%UPDATE_FREQUENCY == 0)
         {
             ParticleUpdateInfo(&minSpeed, &maxSpeed, &averageSpeed, particles, N_PARTICLES);
             HistogramCompute(particles, N_PARTICLES, &histogram);

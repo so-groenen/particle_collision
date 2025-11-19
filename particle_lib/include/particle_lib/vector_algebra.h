@@ -14,6 +14,8 @@ Vector2 VectorScale(float s, const Vector2* vec);
 void VectorAddInPlace(Vector2* v1, const Vector2* v2);
 void VectorRemoveInPlace(Vector2* v1, const Vector2* v2);
 void VectorScaleAndAddInPlace(Vector2* v1, const Vector2* v2, float s);
-Vector2 VectorSubtract(const Vector2* lhs, const Vector2* rhs);
-
+inline Vector2 VectorSubtract(const Vector2* lhs, const Vector2* rhs)
+{
+    return VectorGetRelative(lhs, rhs); 
+}
 #endif

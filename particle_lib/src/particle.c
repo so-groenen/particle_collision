@@ -43,14 +43,14 @@ void ParticleLogInfo(const Particle* p, size_t N)
 }
 RenderTexture2D ParticleCreateRenderTexture(float radius, Color particle_color)
 {
-    int rendererTextureLen   = 2*(int)radius;
-    RenderTexture2D renderer = LoadRenderTexture(rendererTextureLen, rendererTextureLen);
+    int rendererTextureLen    = 2*(int)radius;
+    RenderTexture2D renderTex = LoadRenderTexture(rendererTextureLen, rendererTextureLen);
 
-    BeginTextureMode(renderer);
+    BeginTextureMode(renderTex);
     ClearBackground(RAYWHITE);
         DrawCircle(radius, radius, radius, particle_color);
     EndTextureMode();
-    return renderer;
+    return renderTex;
 }
 void ParticleMove(Particle* particle, float dt)
 {
@@ -124,8 +124,8 @@ void ParticleRemoveCenterOfMass(Particle* particles, size_t N)
     }
     for (size_t i = 0; i < N; i++)
     {
-        particles[i].vel.x -= px_CM/(totalMass);
-        particles[i].vel.y -= py_CM/(totalMass);
+        particles[i].vel.x -= px_CM/totalMass;
+        particles[i].vel.y -= py_CM/totalMass;
     }
 }
 
@@ -138,7 +138,7 @@ Vector2 ParticleGetCenter(const Particle* particle)
     return (Vector2){particle->pos.x - particle->radius, particle->pos.y - particle->radius};
 }
 
-void ParticleUpdateInfo(float *minSpeed, float *maxSpeed, float *averageSpeed, const Particle *particles, size_t N)
+void ParticleUpdateInfo(float *minSpeed, float *maxSpeed, float *averageSpeed, const Particle* particles, size_t N)
 {
     float sum   = 0.f;
     float min   = __FLT_MAX__;

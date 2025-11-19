@@ -53,17 +53,27 @@ int main(void)
     particles[BROWNIAN_INDEX].mass   = BROWNIAN_MASS;
     particles[BROWNIAN_INDEX].radius = BROWNIAN_RADIUS;
 
+
+    puts("[INFO]: MonteCarlo set positions: Start");
     MonteCarloUpdatePosition(BROWNIAN_INDEX, particles, BROWNIAN_INDEX, &box, PARTICLE_RADIUS);
     for (size_t n = BROWNIAN_INDEX+1; n < N_PARTICLES; n++)
     {
         size_t particleNumberToCheck = n;
-        MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS);
+        if(!MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS))
+        {
+            fprintf(stderr, "Monte Carlo position update does not converge after %u trials\n", MONTECARLO_MAX_ATTEMPT);
+            CloseWindow();
+            UnloadRenderTexture(particleRenderTex);
+            return EXIT_FAILURE;
+        }
     }
+    puts("[INFO]: MonteCarlo set positions: Finish");
+
 
     // Brownian particle texture:
     Texture2D brownianTexture = LoadTexture("sphere.png");
-    int frameWidth            = brownianTexture.width;
-    int frameHeight           = brownianTexture.height;
+    unsigned int frameWidth   = brownianTexture.width;
+    unsigned int frameHeight  = brownianTexture.height;
     Vector2 origin            = {0};
     Rectangle sourceRec       = {0.f, 0.f, (float)frameWidth, (float)frameHeight };
     Rectangle destRec         = {particles[BROWNIAN_INDEX].pos.x, particles[BROWNIAN_INDEX].pos.y, 2*BROWNIAN_RADIUS, 2*BROWNIAN_RADIUS};

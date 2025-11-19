@@ -1,8 +1,6 @@
 #include "particle_lib/monte_carlo_particle_position_setter.h"
 
  
-
-
 void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float deltaR)
 {
     const float r                =  particle->radius; 
@@ -16,29 +14,30 @@ void MonteCarloSetProposalPosition(Particle* particle, const Box* box, float del
     particle->pos.y = y_mc; 
 } 
 
-
-
 bool MonteCarloShouldAccept(size_t index, const Particle* particle, size_t N_part)
 {
     for (size_t n = 0; n < N_part; n++)
     {
         if (n != index && CheckCollisionCircles(particle[n].pos, (1.01)*particle[n].radius, particle[index].pos, (1.01)*particle[index].radius))
         {
-            return FAIL;
+            return true;
         }
     }
-    return SUCCESS;
+    return false;
 }
 
-void MonteCarloUpdatePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR)
+bool MonteCarloUpdatePosition(size_t index, Particle* particles, size_t N_part, const Box* box, float deltaR)
 {
     uint64_t attempt = 0;
     do
     {
         MonteCarloSetProposalPosition(&particles[index], box, deltaR);
         attempt++;   
-    } while (MonteCarloShouldAccept(index, particles, N_part) == FAIL);
-    
+        if (attempt == MONTECARLO_MAX_ATTEMPT)
+        {
+            return false;
+        }
 
-    if(DEBUG) printf("MONTECARLO: (particle %zu) attempt = %llu\n", index, attempt);
+    } while (!MonteCarloShouldAccept(index, particles, N_part));
+    return true;
 }

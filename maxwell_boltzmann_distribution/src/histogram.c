@@ -1,16 +1,18 @@
 #include "histogram.h"
  
+#define HISTOGRAM_MIN_HEIGHT 10.0f
+
 
 void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histogram)
 {
-    float Binwidth = (histogram->max - histogram->min) / histogram->Nbins;
-    size_t bin_number;
+    float binWidth   = (histogram->max - histogram->min) / histogram->Nbins;
+    size_t binNumber = 0;
     for (size_t i = 0; i < n_part; i++)
     {
-        bin_number = (size_t)(  ParticleGetSpeed(&particles[i]) / Binwidth  );
-        if (bin_number < histogram->Nbins)
+        binNumber = (size_t)(ParticleGetSpeed(&particles[i]) / binWidth);
+        if (binNumber < histogram->Nbins)
         {
-            histogram->binValues[bin_number] += 1;
+            histogram->binValues[binNumber] += 1;
         }
         else
         {
@@ -18,7 +20,6 @@ void HistogramCompute(const Particle* particles, size_t n_part, Histogram* histo
         }
     }
 }
-
 
 bool HistogramInit(Histogram* histogram, size_t Nbins, float min, float max)
 {
@@ -41,23 +42,21 @@ void HistogramRelease(Histogram* histogram)
     histogram->binValues = NULL;
 }
 
-
-
-void HistogramFillBins(Rectangle* bin, uint64_t binValue, float scalingFactor, float MaxHeight)
+void HistogramFillBins(Rectangle* bin, uint64_t binValue, float scalingFactor, float maxHeight)
 {
     float oldHeight = bin->height;
-    float NewHeight = (scalingFactor * binValue);
+    float newHeight = (scalingFactor * binValue);
 
-    if(NewHeight < 10.0f)
+    if(newHeight < HISTOGRAM_MIN_HEIGHT)
     {
-        NewHeight = 10.0f;
+        newHeight = HISTOGRAM_MIN_HEIGHT;
     }
-    if(NewHeight > MaxHeight)
+    if(newHeight > maxHeight)
     {
-        NewHeight = MaxHeight;
+        newHeight = maxHeight;
     }
-    float deltaH = NewHeight - oldHeight;
-    bin->height  = NewHeight;
+    float deltaH = newHeight - oldHeight;
+    bin->height  = newHeight;
     bin->y      -= deltaH;
 }
 

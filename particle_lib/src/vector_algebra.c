@@ -3,10 +3,7 @@
 
 Vector2 VectorGetRelative(const Vector2* v1, const Vector2* v2)
 {
-    Vector2 v12 = {0};
-    v12.x = v2->x - v1->x;
-    v12.y = v2->y - v1->y;
-    return v12;
+    return (Vector2){(v2->x - v1->x), (v2->y - v1->y)};
 }
 float VectorGetDotProd(const Vector2* v1, const Vector2* v2)
 {
@@ -16,8 +13,7 @@ float VectorGetDotProd(const Vector2* v1, const Vector2* v2)
 }
 Vector2 VectorScale(float s, const Vector2* vec)
 {
-    Vector2 svec = {s * vec->x, s * vec->y};
-    return svec;
+    return (Vector2){s * vec->x, s * vec->y};
 }
 void VectorAddInPlace(Vector2* v1, const Vector2* v2)
 {
@@ -29,10 +25,10 @@ void VectorRemoveInPlace(Vector2* v1, const Vector2* v2)
     v1->x -= v2->x;
     v1->y -= v2->y;
 }
-Vector2 VectorSubtract(const Vector2* lhs, const Vector2* rhs)
-{
-    return (Vector2){lhs->x - rhs->x, lhs->y - rhs->y};
-}
+// inline Vector2 VectorSubtract(const Vector2* lhs, const Vector2* rhs)
+// {
+//     return VectorGetRelative(lhs, rhs);// (Vector2){lhs->x - rhs->x, lhs->y - rhs->y};
+// }
 void VectorScaleAndAddInPlace(Vector2* v1, const Vector2* v2, float s)
 {
     v1->x += s*v2->x;
