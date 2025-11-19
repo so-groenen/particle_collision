@@ -27,8 +27,9 @@ enum DrawMode
 int main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Brownian Motion");
-    SetRandomSeed((unsigned int)time(NULL));
- 
+    unsigned int seed = (unsigned int)time(NULL);
+    srand(seed);
+    SetRandomSeed(seed);
     // <-- Box for particles --> 
     const Box box = 
     {
@@ -61,7 +62,7 @@ int main(void)
         size_t particleNumberToCheck = n;
         if(!MonteCarloUpdatePosition(n, particles, particleNumberToCheck, &box, PARTICLE_RADIUS))
         {
-            fprintf(stderr, "Monte Carlo position update does not converge after %u trials\n", MONTECARLO_MAX_ATTEMPT);
+            fprintf(stderr, "ERROR: Monte Carlo position update does not converge after %u trials\n", MONTECARLO_MAX_ATTEMPT);
             CloseWindow();
             UnloadRenderTexture(particleRenderTex);
             return EXIT_FAILURE;

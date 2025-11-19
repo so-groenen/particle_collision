@@ -21,8 +21,9 @@
 int main(void)
 {
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Maxwell-Boltzmann distribution");
-    SetRandomSeed(time(NULL));
- 
+    unsigned int seed = (unsigned int)time(NULL);
+    srand(seed);
+    SetRandomSeed(seed); 
     // <-- Box for particles --> 
     Box box = 
     {

@@ -3,9 +3,8 @@
 
 
 
-
-
 #define MONTECARLO_MAX_ATTEMPT (unsigned int)5e6
+
 #include "particle.h"
 
 
