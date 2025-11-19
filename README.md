@@ -1,20 +1,22 @@
-# 2D particle Collisions in C using Raylib
+# 2D particles collisions in C using Raylib
 
-One of my first Raylib projects that I brushed up.<br>
+Small Raylib projects showing particle collisions.<br>
 It contains a small `particle_lib` library for handling particles in Raylib and two small examples involving elastic particle collisions in 2D.
 
 ## Brownian particle 
+A larger Brownian particle colliding with smaller & lighter particles:<br>
 [<img src="assets/brownian.png" width="480">](https://github.com/so-groenen)
+
+By pressing the `SPACE BAR` we can move over to the *Brownian path trace*-view which shows the trajectory of Brownian particle:
 [<img src="assets/brownian_trace.png" width="480">](https://github.com/so-groenen)
-
-
-By pressing the `SPACE BAR` we can move over to the *Brownian path trace*-view which showes the trajectory of Brownian particle, as you would for example see in a stochastic processes in 2D (ex, [Wiener process](https://en.wikipedia.org/wiki/Wiener_process)).
+This is similar as you would see in a stochastic processes in 2D (ex, [Wiener process](https://en.wikipedia.org/wiki/Wiener_process))
+and makes connection to the Langevin equation approach to the Brownian motion more clear.
 See the [wikipedia page](https://en.wikipedia.org/wiki/Brownian_motion) for more information on the Brownian motion.
 
 ## Maxwell-Boltzmann distribution
 
+Shows the Maxwell-Boltzmann distribution in real time from the velocity distrubtion:
 [<img src="assets/maxwell_boltzmann.jpg" width="960">](https://github.com/so-groenen)
-Shows the Maxwell-Boltzmann distribution in real time from the velocity distrubtion.<br> 
 
 ## Related Projects: Langevin equation & Event Driven Simulation
 
@@ -26,3 +28,6 @@ You can find my study using Python Numba here:
 Another popular approach to solving multiple interacting particles is to use the so-callled "Event-driven" approach. Here, instead of checking for collisions at every frame, we pre-compute all the collision events (treated as a class containing the colliding pairs and predicted time of collision), put them in a priority queue (ordred by decreasing collision time) and move from collision to collision. 
 * [Event Driven using Python PyGame](https://github.com/so-groenen/Event-Driven-particle-simulation-in-Pygame)
 
+## TODO:
+* Add video link, if OBS lets me do it without frame drops
+ 
