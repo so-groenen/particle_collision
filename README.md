@@ -7,7 +7,7 @@ It contains a small `particle_lib` library for handling particles in Raylib and 
 A larger Brownian particle colliding with smaller & lighter particles:<br>
 [<img src="assets/brownian.png" width="480">](https://github.com/so-groenen)
 
-By pressing the `SPACE BAR` we can move over to the *Brownian path trace*-view which shows the trajectory of Brownian particle:
+By pressing the `SPACE BAR` we can move over to the *Brownian path trace*-view which shows the trajectory of Brownian particle:<br>
 [<img src="assets/brownian_trace.png" width="480">](https://github.com/so-groenen)
 This is similar as you would see in a stochastic processes in 2D (ex, [Wiener process](https://en.wikipedia.org/wiki/Wiener_process))
 and makes connection to the Langevin equation approach to the Brownian motion more clear.
